@@ -1,0 +1,8 @@
+- name: Kafka Broker Provisioning
+  hosts: kafka_broker
+  gather_facts: yes
+  tags:
+    - kafka_broker
+  tasks:
+  - import_role:
+      name: ../roles/confluent.kafka_broker

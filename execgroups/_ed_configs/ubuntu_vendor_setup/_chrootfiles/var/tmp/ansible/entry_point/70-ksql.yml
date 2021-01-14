@@ -1,0 +1,8 @@
+- name: KSQL Provisioning
+  hosts: ksql
+  gather_facts: yes
+  tags:
+    - ksql
+  tasks:
+  - import_role:
+      name: ../roles/confluent.ksql

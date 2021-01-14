@@ -1,0 +1,8 @@
+- name: Kafka Rest Provisioning
+  hosts: kafka_rest
+  gather_facts: yes
+  tags:
+    - kafka_rest
+  tasks:
+  - import_role:
+      name: ../roles/confluent.kafka_rest

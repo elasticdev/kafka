@@ -1,0 +1,8 @@
+- name: Control Center Provisioning
+  hosts: control_center
+  gather_facts: yes
+  tags:
+    - control_center
+  tasks:
+  - import_role:
+      name: ../roles/confluent.control_center

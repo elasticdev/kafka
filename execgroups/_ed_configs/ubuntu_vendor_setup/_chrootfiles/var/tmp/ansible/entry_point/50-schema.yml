@@ -1,0 +1,8 @@
+- name: Schema Registry Provisioning
+  hosts: schema_registry
+  gather_facts: yes
+  tags:
+    - schema_registry
+  tasks:
+  - import_role:
+      name: ../roles/confluent.schema_registry
