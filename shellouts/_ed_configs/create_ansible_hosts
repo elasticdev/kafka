@@ -37,12 +37,7 @@ class Main(ResourceCmdHelper):
         set_env_vars = [ "JOB_INSTANCE_ID",
                          "SCHEDULE_ID",
                          "RUN_ID",
-                         "ANS_VAR_private_key",
                          "ANSIBLE_DIR",
-                         "ANS_VAR_mongodb_keyfile",
-                         "ANS_VAR_mongodb_pem",
-                         "ANS_VAR_mongodb_main_ips",
-                         "ANS_VAR_mongodb_config_network",
                          "ANS_VAR_mongodb_public_ips",
                          "ANS_VAR_mongodb_private_ips",
                          "ANS_VAR_mongodb_config_ips",
@@ -54,117 +49,12 @@ class Main(ResourceCmdHelper):
         # e.g. ANS_VAR_mongodb_public_ips to mongodb_public_ips
         self.remap_app_vars()
 
-    def _set_vars(self):
+    def _add_ips_to_hosts(self,args_key,ansible_key):
 
-        # re-mapped variables from ANSIBLE without prefixes
-
-        self.public_ips = self.inputargs["mongodb_public_ips"].split(",")
-        self.private_ips = self.inputargs["mongodb_private_ips"].split(",")
-        self.config_ips = self.inputargs["mongodb_config_ips"].split(",")
-        self.config_network = self.inputargs["mongodb_config_network"]
-
-        self.clobber = self.inputargs.get("clobber",True)
-        if self.clobber in [ "None", None, 'none' ]: self.clobber = None
-        
-        try:
-            self.main_public_ip,self.main_private_ip = self.inputargs["mongodb_main_ips"].split(",")
-        except:
-            self.main_public_ip = self.public_ips[0]
-            self.main_private_ip = self.private_ips[0]
-            self.logger.warn("ANS_VAR_/mongodb_main_ips not set")
-
-        if len(self.private_ips) > 1:
-            self.private_secondaries = self.private_ips[1:]
-        else:
-            self.private_secondaries = None
-
-        self.config_file_path = "{}/hosts".format(self.exec_dir)
-        self.config_file = open(self.config_file_path,"w")
-
-    def _create_mongodb_keyfile(self):
-
-        filepath = os.path.join(self.exec_dir,"roles","init_replica_nodes","files","mongodb_keyfile")
-
-        self.write_key_to_file(key="mongodb_keyfile",
-                               filepath=filepath,
-                               split_char="return",
-                               add_return=True,
-                               permission=400)
-
-        #os.system("chmod 400 {}".format(filepath))
-
-    def _create_mongodb_pem(self):
-
-        filepath = os.path.join(self.exec_dir,"roles","init_replica_nodes","files","mongodb.pem")
-
-        self.write_key_to_file(key="mongodb_pem",
-                               filepath=filepath,
-                               split_char="return",
-                               add_return=True,
-                               permission=400)
-        
-    def _add_public(self):
-
-        self.config_file.write('[public]')
+        self.config_file.write('[{}]'.format(ansible_key))
         self.config_file.write("\n")
 
-        for _ip in self.public_ips:
-            self.config_file.write(_ip)
-            self.config_file.write("\n")
-
-        self.config_file.write("\n")
-
-    def _add_private(self):
-
-        self.config_file.write('[private]')
-        self.config_file.write("\n")
-
-        for _ip in self.private_ips:
-            self.config_file.write(_ip)
-            self.config_file.write("\n")
-
-        self.config_file.write("\n")
-
-    def _add_config_ips(self):
-
-        self.config_file.write('[configuration]')
-        self.config_file.write("\n")
-
-        for _ip in self.config_ips:
-            self.config_file.write(_ip)
-            self.config_file.write("\n")
-
-        self.config_file.write("\n")
-
-    def _add_config_network(self):
-
-        self.config_file.write('[config_network]')
-        self.config_file.write("\n")
-        self.config_file.write(self.config_network)
-        self.config_file.write("\n")
-        self.config_file.write("\n")
-
-    def _add_main(self):
-
-        self.config_file.write('[public_main]')
-        self.config_file.write("\n")
-        self.config_file.write(self.main_public_ip)
-        self.config_file.write("\n")
-        self.config_file.write("\n")
-        self.config_file.write('[private_main]')
-        self.config_file.write("\n")
-        self.config_file.write(self.main_private_ip)
-        self.config_file.write("\n")
-        self.config_file.write("\n")
-
-    def _add_secondaries(self):
-
-        if not self.private_secondaries: return
-
-        self.config_file.write('[private-secondaries]')
-        self.config_file.write("\n")
-
-        for _ip in self.private_secondaries:
+        for _ip in self.inputargs[args_key].split(","):
             self.config_file.write(_ip)
             self.config_file.write("\n")
 
@@ -172,34 +62,30 @@ class Main(ResourceCmdHelper):
 
     def create(self):
 
-        # [public]
-        # 13.212.156.196
-        # 13.212.111.66
-        # 13.229.147.37
-        # 
-        # [public_main]
-        # 13.212.156.196
-        # 
-        # [private-main]
-        # 172.31.5.4
-        # 
-        # [private-secondaries]
-        # 172.31.10.21
-        # 172.31.1.231
+        '''
+        zookeeper
+        kafka_broker
+        schema_registry
+        kafka_connect
+        kafka_rest
+        ksql
+        control_center
+        '''
 
-        self._set_vars()
+        self.config_file_path = "{}/hosts".format(self.exec_dir)
+        self.config_file = open(self.config_file_path,"w")
+
+        self._add_ips_to_hosts("kafka_zookeeper","zookeeper")
+        self._add_ips_to_hosts("kafka_broker","kafka_broker")
+        self._add_ips_to_hosts("kafka_schema_registry","schema_registry")
+        self._add_ips_to_hosts("kafka_connect","schema_connect")
+        self._add_ips_to_hosts("kafka_rest","schema_rest")
+        self._add_ips_to_hosts("kafka_ksql","ksql")
+        self._add_ips_to_hosts("kafka_control_center","control_center")
 
         # update and clobber vars all and hosts
         self.templify(clobber=True)
 
-        self._create_mongodb_keyfile()
-        self._create_mongodb_pem()
-        self._add_public()
-        self._add_private()
-        self._add_config_ips()
-        self._add_config_network()
-        self._add_main()
-        self._add_secondaries()
         self.config_file.close()
         self.logger.debug("Created Ansible host config file {}".format(self.config_file_path))
 
@@ -220,15 +106,14 @@ environmental variables:
         JOB_INSTANCE_ID
         SCHEDULE_ID
         RUN_ID
-        ANS_VAR_private_key
         ANSIBLE_DIR
-        ANS_VAR_mongodb_keyfile
-        ANS_VAR_mongodb_pem
-        ANS_VAR_mongodb_main_ips
-        ANS_VAR_mongodb_config_network
-        ANS_VAR_mongodb_public_ips
-        ANS_VAR_mongodb_private_ips
-        ANS_VAR_mongodb_config_ips
+        ANS_VAR_kafka_zookeeper
+        ANS_VAR_kafka_broker
+        ANS_VAR_kafka_schema_registry
+        ANS_VAR_kafka_connect
+        ANS_VAR_kafka_rest
+        ANS_VAR_kafka_ksql
+        ANS_VAR_kafka_control_center
         method
 
        """
@@ -245,7 +130,16 @@ if __name__ == '__main__':
 
     if main.inputargs.get("method","create") == "create":
 
-        main.check_required_inputargs(keys=["mongodb_public_ips","mongodb_private_ips","mongodb_config_ips"])
+        required_keys = [ "kafka_zookeeper",
+                          "kafka_broker",
+                          "kafka_schema_registry",
+                          "kafka_connect",
+                          "kafka_rest",
+                          "kafka_ksql",
+                          "kafka_control_center" 
+                          ]
+
+        main.check_required_inputargs(keys=required_keys)
         main.create()
 
     else:
