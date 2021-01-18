@@ -1,0 +1,180 @@
+#!/usr/bin/env python
+#
+#This file is part of "jiffy".
+#
+#Project: jiffy: A product for building and managing infrastructure: 
+#cloud provider services, and servers and their configurations.
+#
+#Description: A product for building and managing infrastructure. 
+#This includes third party API calls for services such as virtual
+#cloud servers, load balancers, databases, and other. The product 
+#manages connectivity and appropriate communication among these 
+#aws.
+#
+#Copyright (C) Gary Leong - All Rights Reserved
+#Unauthorized copying of this file, via any medium is strictly prohibited
+#Proprietary and confidential
+#Written by Gary Leong  <gwleong@gmail.com, September 17,2020
+
+import sys
+
+from ed_helper_publisher.loggerly import ElasticDevLogger
+from ed_helper_publisher.resource_manage import ResourceCmdHelper
+
+class Main(ResourceCmdHelper):
+
+    def __init__(self,**kwargs):
+
+        ResourceCmdHelper.__init__(self,app_name="ansible",must_exists=["stateful_id"])
+
+        self.classname = 'KAFKA_ANSIBLE_HELPER'
+        self.logger = ElasticDevLogger(self.classname,logcategory="cloudprovider")
+        self.logger.debug("Instantiating %s" % self.classname)
+
+        set_env_vars = [ "JOB_INSTANCE_ID",
+                         "SCHEDULE_ID",
+                         "RUN_ID",
+                         "ANSIBLE_DIR",
+                         "method",
+                         "ANS_VAR_kafka_zookeeper",
+                         "ANS_VAR_kafka_broker",
+                         "ANS_VAR_kafka_schema_registry",
+                         "ANS_VAR_kafka_connect",
+                         "ANS_VAR_kafka_rest",
+                         "ANS_VAR_kafka_ksql",
+                         "ANS_VAR_kafka_control_center" 
+                         ]
+
+        self.set_inputargs(set_env_vars=set_env_vars,upper_case=None)
+
+        # if you want to remap vars for the application in the inputargs
+        self.remap_app_vars()
+
+    def _add_ips_to_hosts(self,args_key,ansible_key):
+
+        self.config_file.write('[{}]'.format(ansible_key))
+        self.config_file.write("\n")
+
+        for _ip in self.inputargs[args_key].split(","):
+            self.config_file.write(_ip)
+            self.config_file.write("\n")
+
+        self.config_file.write("\n")
+
+    def create(self):
+
+        '''
+        zookeeper
+        kafka_broker
+        schema_registry
+        kafka_connect
+        kafka_rest
+        ksql
+        control_center
+        '''
+
+        self.config_file_path = "{}/hosts".format(self.exec_dir)
+        self.config_file = open(self.config_file_path,"w")
+
+        self._add_ips_to_hosts("kafka_zookeeper","zookeeper")
+        self._add_ips_to_hosts("kafka_broker","kafka_broker")
+        self._add_ips_to_hosts("kafka_schema_registry","schema_registry")
+        self._add_ips_to_hosts("kafka_connect","schema_connect")
+        self._add_ips_to_hosts("kafka_rest","schema_rest")
+        self._add_ips_to_hosts("kafka_ksql","ksql")
+        self._add_ips_to_hosts("kafka_control_center","control_center")
+
+        # update and clobber vars all and hosts
+        self.templify(clobber=True)
+
+        self.config_file.close()
+        self.logger.debug("Created Ansible host config file {}".format(self.config_file_path))
+
+        #self.sync_to_share()
+
+def usage():
+
+    print """
+script + environmental variables
+
+or
+
+script + json_input (as argument)
+
+environmental variables:
+
+    create:
+        JOB_INSTANCE_ID
+        SCHEDULE_ID
+        RUN_ID
+        ANSIBLE_DIR
+        ANS_VAR_kafka_zookeeper
+        ANS_VAR_kafka_broker
+        ANS_VAR_kafka_schema_registry
+        ANS_VAR_kafka_connect
+        ANS_VAR_kafka_rest
+        ANS_VAR_kafka_ksql
+        ANS_VAR_kafka_control_center
+        method
+
+       """
+    exit(4)
+
+if __name__ == '__main__':
+
+    try:
+        json_input = sys.argv[1]
+    except:
+        json_input = None
+
+    main = Main()
+
+    if main.inputargs.get("method","create") == "create":
+
+        required_keys = [ "kafka_zookeeper",
+                          "kafka_broker",
+                          "kafka_schema_registry",
+                          "kafka_connect",
+                          "kafka_rest",
+                          "kafka_ksql",
+                          "kafka_control_center" 
+                          ]
+
+        main.check_required_inputargs(keys=required_keys)
+        main.create()
+
+    else:
+        usage()
+        print 'method "{}" not supported!'.format(main.inputargs.get("method","create"))
+        exit(4)
+
+def _vm_create(server_type,num,stack):
+
+    default_values = {"keyname":stack.ssh_keyname}
+    default_values["image"] = stack.image
+    default_values["aws_default_region"] = stack.aws_default_region
+    default_values["security_groups"] = stack.security_groups
+    default_values["vpc_name"] = stack.vpc_name
+    default_values["subnet"] = stack.subnet
+    default_values["size"] = stack.size
+    default_values["disksize"] = stack.disksize
+    default_values["register_to_ed"] = None
+
+    hosts = []
+
+    # Create ec2 instances
+    for num in range(int(stack.num_of_zookeeper)):
+
+        hostname = "{}-{}-num-{}".format(stack.hostname_base,server_type,num).replace("_","-")
+        hosts.append(hostname)
+
+        default_values["hostname"] = hostname
+
+        inputargs = {"default_values":default_values}
+        human_description = "Creating hostname {} on ec2".format(hostname)
+
+        inputargs["automation_phase"] = "infrastructure"
+        inputargs["human_description"] = human_description
+        stack.ec2_ubuntu.insert(display=True,**inputargs)
+
+    return hosts
