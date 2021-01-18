@@ -1,23 +1,54 @@
+def _vm_create(server_type,num,stack):
+
+    default_values = {"keyname":stack.ssh_keyname}
+    default_values["image"] = stack.image
+    default_values["aws_default_region"] = stack.aws_default_region
+    default_values["security_groups"] = stack.security_groups
+    default_values["vpc_name"] = stack.vpc_name
+    default_values["subnet"] = stack.subnet
+    default_values["size"] = stack.size
+    default_values["disksize"] = stack.disksize
+    default_values["register_to_ed"] = None
+
+    hosts = []
+
+    # Create ec2 instances
+    for num in range(int(num)):
+
+        hostname = "{}-{}-num-{}".format(stack.hostname_base,server_type,num).replace("_","-")
+        hosts.append(hostname)
+
+        default_values["hostname"] = hostname
+
+        inputargs = {"default_values":default_values}
+        human_description = "Creating hostname {} on ec2".format(hostname)
+
+        inputargs["automation_phase"] = "infrastructure"
+        inputargs["human_description"] = human_description
+        stack.ec2_ubuntu.insert(display=True,**inputargs)
+
+    return hosts
+
 def run(stackargs):
 
     # instantiate authoring stack
     stack = newStack(stackargs)
 
     # Add default variables
-    stack.parse.add_required(key="mongodb_cluster")
-    stack.parse.add_required(key="num_of_replicas",default="1")
     stack.parse.add_required(key="ssh_keyname")
 
-    # This will be public_main/private_main
-    stack.parse.add_optional(key="config_network",choices=["public","private"],default="public")
+    stack.parse.add_required(key="kafka_cluster")
+    stack.parse.add_required(key="num_of_zookeeper",default=1)
+    stack.parse.add_required(key="num_of_broker",default=1)
+    stack.parse.add_required(key="num_of_schema_registry",default=1)
+    stack.parse.add_required(key="num_of_connect",default=1)
+    stack.parse.add_required(key="num_of_rest",default=1)
+    stack.parse.add_required(key="num_of_ksql",default=1)
+    stack.parse.add_required(key="num_of_control_center",default=1)
 
-    stack.parse.add_optional(key="mongodb_username",default="null")
-    stack.parse.add_optional(key="mongodb_password",default="null")
     stack.parse.add_optional(key="vm_username",default="null")
 
-    # We will enable random suffix to add to the hostname
-    stack.parse.add_optional(key="hostname_random",default="null")
-
+    # bastion configs
     stack.parse.add_optional(key="bastion_security_groups",default="bastion")
     stack.parse.add_optional(key="bastion_subnet",default="private")
     stack.parse.add_optional(key="bastion_image",default="ami-06fb5332e8e3e577a")
@@ -38,14 +69,9 @@ def run(stackargs):
     stack.parse.add_optional(key="tags",default="null")
     stack.parse.add_optional(key="labels",default="null")
 
-    # data disk
-    stack.parse.add_optional(key="volume_size",default=100)
-    stack.parse.add_optional(key="volume_mountpoint",default="/var/lib/mongodb")
-    stack.parse.add_optional(key="volume_fstype",default="xfs")
-
     # Add substack
     stack.add_substack('elasticdev:::ec2_ubuntu')
-    stack.add_substack('elasticdev:::mongodb_replica_on_ubuntu')
+    stack.add_substack('elasticdev:::_kafka_cluster_on_ubuntu_by_bastion')
 
     # Initialize 
     stack.init_variables()
@@ -53,21 +79,16 @@ def run(stackargs):
 
     stack.set_parallel()
 
-    mongodb_hosts = []
+    # Set up basic hostnames
+    stack.set_variable("hostname_base","{}-{}".format(stack.kafka_cluster,stack.random_id(size=3).lower()))
+    stack.set_variable("bastion_hostname","{}-config".format(stack.hostname_base))
 
-    if stack.hostname_random:
-        hostname_base = "{}-replica-{}".format(stack.mongodb_cluster,stack.random_id(size=3).lower())
-    else:
-        hostname_base = "{}-replica".format(stack.mongodb_cluster)
-
-    # Set up bastion configuration host
-    stack.set_variable("bastion_hostname","{}-config".format(hostname_base))
-
+    # Set up bastion
     default_values = {"vpc_name":stack.vpc_name}
     default_values["keyname"] = stack.ssh_keyname
     default_values["aws_default_region"] = stack.aws_default_region
-    default_values["size"] = stack.size
-    default_values["disksize"] = stack.disksize
+    default_values["size"] = "t3.micro" # we just ned a small machine for configuration
+    default_values["disksize"] = 50 # we just set the disksize relatively large
 
     overide_values = {"hostname":stack.bastion_hostname}
     overide_values["register_to_ed"] = True
@@ -83,65 +104,51 @@ def run(stackargs):
     inputargs["human_description"] = human_description
     stack.ec2_ubuntu.insert(display=True,**inputargs)
 
-    # Create mongodb ec2 instances
-    for num in range(int(stack.num_of_replicas)):
+    stack.parse.add_required(key="num_of_zookeeper",default=1)
+    stack.parse.add_required(key="num_of_broker",default=1)
+    stack.parse.add_required(key="num_of_schema_registry",default=1)
+    stack.parse.add_required(key="num_of_connect",default=1)
+    stack.parse.add_required(key="num_of_rest",default=1)
+    stack.parse.add_required(key="num_of_ksql",default=1)
+    stack.parse.add_required(key="num_of_control_center",default=1)
 
-        hostname = "{}-num-{}".format(hostname_base,num).replace("_","-")
-        mongodb_hosts.append(hostname)
-
-        default_values = {"hostname":hostname}
-        default_values["keyname"] = stack.ssh_keyname
-        default_values["image"] = stack.image
-        default_values["aws_default_region"] = stack.aws_default_region
-        default_values["security_groups"] = stack.security_groups
-        default_values["vpc_name"] = stack.vpc_name
-        default_values["subnet"] = stack.subnet
-        default_values["size"] = stack.size
-        default_values["disksize"] = stack.disksize
-        default_values["register_to_ed"] = None
-        default_values["volume_size"] = stack.volume_size
-        # ref 45304958324
-        default_values["volume_name"] = "{}-{}".format(hostname,stack.volume_mountpoint).replace("/","-").replace(".","-")
-
-        inputargs = {"default_values":default_values}
-        human_description = "Creating hostname {} on ec2".format(hostname)
-        inputargs["automation_phase"] = "infrastructure"
-        inputargs["human_description"] = human_description
-        stack.ec2_ubuntu.insert(display=True,**inputargs)
+    zookeeper_hosts = _vm_create("zookeeper",stack.num_of_zookeeper,stack)
+    broker_hosts = _vm_create("broker",stack.num_of_broker,stack)
+    schema_registry_hosts = _vm_create("schema_registry",stack.num_of_schema_registry,stack)
+    connect_hosts = _vm_create("connect",stack.num_of_connect,stack)
+    rest_hosts = _vm_create("rest",stack.num_of_rest,stack)
+    ksql_hosts = _vm_create("ksql",stack.num_of_ksql,stack)
+    control_center_hosts = _vm_create("control_center",stack.num_of_control_center,stack)
 
     stack.unset_parallel(wait_all=True)
 
-    # provide the mongodb_hosts and begin installing the mongo specific 
+    # provide the _hosts and begin installing the mongo specific 
     # package and replication
-    default_values = {"mongodb_cluster":stack.mongodb_cluster}
+    default_values = {"kafka_cluster":stack.kafka_cluster}
     default_values["ssh_keyname"] = stack.ssh_keyname
-    default_values["mongodb_hosts"] = mongodb_hosts
-    default_values["config_network"] = stack.config_network
+    default_values["zookeeper_hosts"] = zookeeper_hosts
+    default_values["broker_hosts"] = broker_hosts
+    default_values["schema_registry_hosts"] = schema_registry_hosts
+    default_values["connect_hosts"] = connect_hosts
+    default_values["rest_hosts"] = rest_hosts
+    default_values["ksql_hosts"] = ksql_hosts
+    default_values["control_center_hosts"] = control_center_hosts
     default_values["aws_default_region"] = stack.aws_default_region
-
-    if stack.mongodb_username: default_values["mongodb_username"] = stack.mongodb_username
-    if stack.mongodb_password: default_values["mongodb_password"] = stack.mongodb_password
     if stack.vm_username: default_values["vm_username"] = stack.vm_username
 
     default_values["bastion_hostname"] = stack.bastion_hostname
-    default_values["volume_mountpoint"] = stack.volume_mountpoint
-    default_values["volume_fstype"] = stack.volume_fstype
 
     inputargs = {"default_values":default_values}
-    human_description = "Initialing Ubuntu specific actions mongodb_username and mongodb_password"
     inputargs["automation_phase"] = "infrastructure"
     inputargs["human_description"] = human_description
-    stack.mongodb_replica_on_ubuntu.insert(display=True,**inputargs)
+    stack._kafka_cluster_on_ubuntu_by_bastion.insert(display=True,**inputargs)
 
-    # destroy bastion config after replica completes
-    # Testingyoyo
-    #if stack.bastion_config_destroy:
-
-    #    _destroy_values = { "hostname":stack.bastion_hostname,
-    #                        "resource_type":"server",
-    #                        "region":"server",
-    #                        "must_exists":True }
-
-    #    stack.remove_resource(ref_only=None,**_destroy_values)
+    #zookeeper_hosts
+    #broker_hosts
+    #schema_registry_hosts
+    #connect_hosts
+    #rest_hosts
+    #ksql_hosts
+    #control_center_hosts
 
     return stack.get_results()

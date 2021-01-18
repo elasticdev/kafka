@@ -14,15 +14,12 @@
 #Copyright (C) Gary Leong - All Rights Reserved
 #Unauthorized copying of this file, via any medium is strictly prohibited
 #Proprietary and confidential
-#Written by Gary Leong  <gwleong@gmail.com, September 17,2015
+#Written by Gary Leong  <gwleong@gmail.com, September 17,2020
 
-import os
 import sys
-#import jinja2
 
 from ed_helper_publisher.loggerly import ElasticDevLogger
 from ed_helper_publisher.resource_manage import ResourceCmdHelper
-#from ed_helper_publisher.templating import list_template_files
 
 class Main(ResourceCmdHelper):
 
@@ -30,7 +27,7 @@ class Main(ResourceCmdHelper):
 
         ResourceCmdHelper.__init__(self,app_name="ansible",must_exists=["stateful_id"])
 
-        self.classname = 'MONGODB_ANSIBLE_HELPER'
+        self.classname = 'KAFKA_ANSIBLE_HELPER'
         self.logger = ElasticDevLogger(self.classname,logcategory="cloudprovider")
         self.logger.debug("Instantiating %s" % self.classname)
 
@@ -38,15 +35,19 @@ class Main(ResourceCmdHelper):
                          "SCHEDULE_ID",
                          "RUN_ID",
                          "ANSIBLE_DIR",
-                         "ANS_VAR_mongodb_public_ips",
-                         "ANS_VAR_mongodb_private_ips",
-                         "ANS_VAR_mongodb_config_ips",
-                         "method" ]
+                         "method",
+                         "ANS_VAR_kafka_zookeeper",
+                         "ANS_VAR_kafka_broker",
+                         "ANS_VAR_kafka_schema_registry",
+                         "ANS_VAR_kafka_connect",
+                         "ANS_VAR_kafka_rest",
+                         "ANS_VAR_kafka_ksql",
+                         "ANS_VAR_kafka_control_center" 
+                         ]
 
         self.set_inputargs(set_env_vars=set_env_vars,upper_case=None)
 
         # if you want to remap vars for the application in the inputargs
-        # e.g. ANS_VAR_mongodb_public_ips to mongodb_public_ips
         self.remap_app_vars()
 
     def _add_ips_to_hosts(self,args_key,ansible_key):
@@ -146,3 +147,34 @@ if __name__ == '__main__':
         usage()
         print 'method "{}" not supported!'.format(main.inputargs.get("method","create"))
         exit(4)
+
+def _vm_create(server_type,num,stack):
+
+    default_values = {"keyname":stack.ssh_keyname}
+    default_values["image"] = stack.image
+    default_values["aws_default_region"] = stack.aws_default_region
+    default_values["security_groups"] = stack.security_groups
+    default_values["vpc_name"] = stack.vpc_name
+    default_values["subnet"] = stack.subnet
+    default_values["size"] = stack.size
+    default_values["disksize"] = stack.disksize
+    default_values["register_to_ed"] = None
+
+    hosts = []
+
+    # Create ec2 instances
+    for num in range(int(stack.num_of_zookeeper)):
+
+        hostname = "{}-{}-num-{}".format(stack.hostname_base,server_type,num).replace("_","-")
+        hosts.append(hostname)
+
+        default_values["hostname"] = hostname
+
+        inputargs = {"default_values":default_values}
+        human_description = "Creating hostname {} on ec2".format(hostname)
+
+        inputargs["automation_phase"] = "infrastructure"
+        inputargs["human_description"] = human_description
+        stack.ec2_ubuntu.insert(display=True,**inputargs)
+
+    return hosts
