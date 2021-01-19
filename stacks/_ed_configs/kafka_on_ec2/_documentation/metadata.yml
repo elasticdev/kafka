@@ -1,16 +1,13 @@
-desc: The stack that creates a MongoDB using Virtual Machines
+desc: The stack that creates a Kafka using Virtual Machines
 release: 0.0.1
 categories: 
-   - database
-   - mongodb
-   - replica
+   - message_queue
+   - kafka
    - ansible
 tags:
    - ansible
-   - mongodb
-   - replica
+   - kafka
    - vms
-   - database
    - infrastructure
    - featured_infrastructure
    - featured

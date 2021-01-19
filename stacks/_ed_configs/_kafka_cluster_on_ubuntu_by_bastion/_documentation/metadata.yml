@@ -1,18 +1,13 @@
-desc: Creates a MongoDB through a basion host.
+desc: Creates a Kafka through a basion host.
 release: 0.0.1
 categories: 
-   - database
-   - mongodb
-   - replica
+   - kafka
    - ansible
-   - bastion
+   - message_queue
 tags:
-   - bastion
    - ansible
-   - mongodb
-   - replica
+   - kafka
    - vms
-   - database
    - infrastructure
    - featured_infrastructure
    - featured

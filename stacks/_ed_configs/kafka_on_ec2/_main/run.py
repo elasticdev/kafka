@@ -122,8 +122,6 @@ def run(stackargs):
 
     stack.unset_parallel(wait_all=True)
 
-    # provide the _hosts and begin installing the mongo specific 
-    # package and replication
     default_values = {"kafka_cluster":stack.kafka_cluster}
     default_values["ssh_keyname"] = stack.ssh_keyname
     default_values["zookeeper_hosts"] = zookeeper_hosts

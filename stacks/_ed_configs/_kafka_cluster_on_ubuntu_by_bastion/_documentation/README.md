@@ -1,3 +1,3 @@
 **Description**
 
-  - The stack that creates a MongoDB using Virtual Machines through a basion host since the MongoDB is in a protected private network.
+  - The stack that creates a Kafka using Virtual Machines through a basion host since the Kafka is in a protected private network.

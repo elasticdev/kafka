@@ -1,3 +1,3 @@
 **Description**
 
-  - The stack that creates a MongoDB using Virtual Machines
+  - The stack that creates a Kafka using Virtual Machines
