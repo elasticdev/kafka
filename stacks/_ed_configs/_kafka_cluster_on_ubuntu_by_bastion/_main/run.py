@@ -68,6 +68,7 @@ def run(stackargs):
     stack.add_hostgroups("elasticdev:::ubuntu::18.04-docker","install_docker")
     stack.add_hostgroups("elasticdev:::ansible::ubuntu-18.04","install_python")
     stack.add_hostgroups("elasticdev:::kafka::ubuntu_vendor_setup","ubuntu_vendor_setup")
+    stack.add_hostgroups("elasticdev:::kafka::ubuntu_vendor_init_cluster","ubuntu_vendor_init_cluster")
 
     # Initialize 
     stack.init_variables()
@@ -160,7 +161,7 @@ def run(stackargs):
     inputargs["stateful_id"] = stateful_id
     inputargs["automation_phase"] = "infrastructure"
     inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_setup
+    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
 
     stack.add_groups_to_host(**inputargs)
 
@@ -177,7 +178,7 @@ def run(stackargs):
     inputargs["stateful_id"] = stateful_id
     inputargs["automation_phase"] = "infrastructure"
     inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_setup
+    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
 
     stack.add_groups_to_host(**inputargs)
 
@@ -194,7 +195,7 @@ def run(stackargs):
     inputargs["stateful_id"] = stateful_id
     inputargs["automation_phase"] = "infrastructure"
     inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_setup
+    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
 
     stack.add_groups_to_host(**inputargs)
 
@@ -211,7 +212,7 @@ def run(stackargs):
     inputargs["stateful_id"] = stateful_id
     inputargs["automation_phase"] = "infrastructure"
     inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_setup
+    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
 
     stack.add_groups_to_host(**inputargs)
 
@@ -228,7 +229,7 @@ def run(stackargs):
     inputargs["stateful_id"] = stateful_id
     inputargs["automation_phase"] = "infrastructure"
     inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_setup
+    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
 
     stack.add_groups_to_host(**inputargs)
 
@@ -245,7 +246,7 @@ def run(stackargs):
     inputargs["stateful_id"] = stateful_id
     inputargs["automation_phase"] = "infrastructure"
     inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_setup
+    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
 
     stack.add_groups_to_host(**inputargs)
 
@@ -262,7 +263,7 @@ def run(stackargs):
     inputargs["stateful_id"] = stateful_id
     inputargs["automation_phase"] = "infrastructure"
     inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_setup
+    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
 
     stack.add_groups_to_host(**inputargs)
 
@@ -279,7 +280,7 @@ def run(stackargs):
     inputargs["stateful_id"] = stateful_id
     inputargs["automation_phase"] = "infrastructure"
     inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_setup
+    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
 
     stack.add_groups_to_host(**inputargs)
 
