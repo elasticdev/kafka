@@ -103,7 +103,7 @@ def run(stackargs):
     kafka_control_center_ips = _get_private_ips_frm_hosts(stack.control_center_hosts,stack)
     host_ips.extend(kafka_control_center_ips)
 
-    # install python on hosts
+    # install python on hosts for ansible
     env_vars = {"METHOD":"create"}
     env_vars["STATEFUL_ID"] = stack.random_id(size=10)
     env_vars["ANS_VAR_private_key"] = private_key
