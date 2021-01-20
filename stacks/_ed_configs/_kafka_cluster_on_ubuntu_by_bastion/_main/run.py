@@ -85,28 +85,7 @@ def run(stackargs):
     # get ssh_key
     private_key = _get_ssh_key(stack)
 
-    ## install python hosts
-    #env_vars = {"METHOD":"create"}
-    #env_vars["STATEFUL_ID"] = stack.random_id(size=10)
-    #env_vars["ANS_VAR_private_key"] = private_key
-    #env_vars["ANS_VAR_exec_ymls"] = "entry_point/10-install-python.yml"
-    #env_vars["ANSIBLE_DIR"] = "/var/tmp/ansible"
-    #env_vars["ANS_VAR_host_ips"] = ",".join(private_ips)
-
-    #inputargs = {"display":True}
-    #inputargs["human_description"] = 'Install Python for Ansible'
-    #inputargs["env_vars"] = json.dumps(env_vars)
-    #inputargs["stateful_id"] = env_vars["STATEFUL_ID"]
-    #inputargs["automation_phase"] = "infrastructure"
-    #inputargs["hostname"] = stack.bastion_hostname
-    #inputargs["groups"] = stack.install_python
-
-    #stack.add_groups_to_host(**inputargs)
-
-    ###############################################################
     # install with bastion hosts
-    ###############################################################
-
     stateful_id = stack.random_id(size=10)
 
     base_env_vars = {"METHOD":"create"}
@@ -144,6 +123,24 @@ def run(stackargs):
     inputargs["automation_phase"] = "infrastructure"
     inputargs["hostname"] = stack.bastion_hostname
     inputargs["groups"] = stack.ubuntu_vendor_setup
+
+    stack.add_groups_to_host(**inputargs)
+
+    # install python hosts
+    env_vars = {"METHOD":"create"}
+    env_vars["STATEFUL_ID"] = stack.random_id(size=10)
+    env_vars["ANS_VAR_private_key"] = private_key
+    env_vars["ANS_VAR_exec_ymls"] = "entry_point/10-install-python.yml"
+    env_vars["ANSIBLE_DIR"] = "/var/tmp/ansible"
+    #env_vars["ANS_VAR_host_ips"] = ",".join(private_ips)
+
+    inputargs = {"display":True}
+    inputargs["human_description"] = 'Install Python for Ansible'
+    inputargs["env_vars"] = json.dumps(env_vars)
+    inputargs["stateful_id"] = env_vars["STATEFUL_ID"]
+    inputargs["automation_phase"] = "infrastructure"
+    inputargs["hostname"] = stack.bastion_hostname
+    inputargs["groups"] = stack.install_python
 
     stack.add_groups_to_host(**inputargs)
 

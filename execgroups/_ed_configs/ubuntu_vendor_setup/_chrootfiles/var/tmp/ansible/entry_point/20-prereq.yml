@@ -1,5 +1,7 @@
 - name: Host Prerequisites
   hosts: zookeeper:kafka_broker:schema_registry:kafka_connect:ksql:control_center:kafka_rest
+  remote_user: "{{ os_user }}"
+  become: true
   tasks:
   - import_role:
       name: ../roles/confluent.common

@@ -1,5 +1,7 @@
 - name: Kafta Connect Provisioning
   hosts: kafka_connect
+  remote_user: "{{ os_user }}"
+  become: true
   gather_facts: yes
   tags:
     - kafka_connect

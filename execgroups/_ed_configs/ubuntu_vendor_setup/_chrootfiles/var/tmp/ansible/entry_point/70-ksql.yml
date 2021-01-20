@@ -1,5 +1,7 @@
 - name: KSQL Provisioning
   hosts: ksql
+  remote_user: "{{ os_user }}"
+  become: true
   gather_facts: yes
   tags:
     - ksql

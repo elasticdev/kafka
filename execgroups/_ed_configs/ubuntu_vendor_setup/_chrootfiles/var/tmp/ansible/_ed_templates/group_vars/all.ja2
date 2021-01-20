@@ -1,8 +1,5 @@
 ---
 os_user: ubuntu
-ansible_connection: ssh
-ansible_user: ec2-user
-ansible_become: true
 ansible_os_family: Debian
 ssl_enabled: true
 ssl_mutual_auth_enabled: true

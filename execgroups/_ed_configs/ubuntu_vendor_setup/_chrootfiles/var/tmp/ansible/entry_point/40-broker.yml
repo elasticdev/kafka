@@ -1,5 +1,7 @@
 - name: Kafka Broker Provisioning
   hosts: kafka_broker
+  remote_user: "{{ os_user }}"
+  become: true
   gather_facts: yes
   tags:
     - kafka_broker

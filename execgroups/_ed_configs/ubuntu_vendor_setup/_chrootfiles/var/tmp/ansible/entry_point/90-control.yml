@@ -1,5 +1,7 @@
 - name: Control Center Provisioning
   hosts: control_center
+  remote_user: "{{ os_user }}"
+  become: true
   gather_facts: yes
   tags:
     - control_center

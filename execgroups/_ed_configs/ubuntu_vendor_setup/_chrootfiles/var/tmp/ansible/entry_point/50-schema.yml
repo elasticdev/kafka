@@ -1,5 +1,7 @@
 - name: Schema Registry Provisioning
   hosts: schema_registry
+  remote_user: "{{ os_user }}"
+  become: true
   gather_facts: yes
   tags:
     - schema_registry
