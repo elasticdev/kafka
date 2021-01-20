@@ -34,7 +34,8 @@ def _get_private_ips_frm_hosts(hosts,stack):
         if _host_info["private_ip"] not in private_ips: 
             private_ips.append(_host_info["private_ip"])
 
-    return ",".join(private_ips)
+    return private_ips
+    #return ",".join(private_ips)
 
 def run(stackargs):
 
@@ -85,7 +86,46 @@ def run(stackargs):
     # get ssh_key
     private_key = _get_ssh_key(stack)
 
-    # install with bastion hosts
+    # get ips
+    host_ips = []
+    kafka_zookeeper_ips = _get_private_ips_frm_hosts(stack.zookeeper_hosts,stack)
+    host_ips.extend(kafka_zookeeper_ips)
+    kafka_broker_ips = _get_private_ips_frm_hosts(stack.broker_hosts,stack)
+    host_ips.extend(kafka_broker_ips)
+    kafka_schema_registry_ips = _get_private_ips_frm_hosts(stack.schema_registry_hosts,stack)
+    host_ips.extend(kafka_schema_registry_ips)
+    kafka_connect_ips = _get_private_ips_frm_hosts(stack.connect_hosts,stack)
+    host_ips.extend(kafka_connect_ips)
+    kafka_rest_ips = _get_private_ips_frm_hosts(stack.rest_hosts,stack)
+    host_ips.extend(kafka_rest_ips)
+    kafka_ksql_ips = _get_private_ips_frm_hosts(stack.ksql_hosts,stack)
+    host_ips.extend(kafka_ksql_ips)
+    kafka_control_center_ips = _get_private_ips_frm_hosts(stack.control_center_hosts,stack)
+    host_ips.extend(kafka_control_center_ips)
+
+    # install python on hosts
+    env_vars = {"METHOD":"create"}
+    env_vars["STATEFUL_ID"] = stack.random_id(size=10)
+    env_vars["ANS_VAR_private_key"] = private_key
+    env_vars["ANS_VAR_exec_ymls"] = "entry_point/10-install-python.yml"
+    env_vars["ANSIBLE_DIR"] = "/var/tmp/ansible"
+    env_vars["ANS_VAR_host_ips"] = ",".join(host_ips)
+
+    inputargs = {"display":True}
+    inputargs["human_description"] = 'Install Python for Ansible'
+    inputargs["env_vars"] = json.dumps(env_vars)
+    inputargs["stateful_id"] = stack.random_id(size=10)
+    inputargs["automation_phase"] = "infrastructure"
+    inputargs["hostname"] = stack.bastion_hostname
+    inputargs["groups"] = stack.install_python
+
+    stack.add_groups_to_host(**inputargs)
+
+    ###############################################################
+    # Main Ansible configs
+    ###############################################################
+
+    # base env variables
     stateful_id = stack.random_id(size=10)
 
     base_env_vars = {"METHOD":"create"}
@@ -93,29 +133,16 @@ def run(stackargs):
     base_env_vars["ANSIBLE_DIR"] = "/var/tmp/ansible"
     base_env_vars["STATEFUL_ID"] = stateful_id
     base_env_vars["ANS_VAR_private_key"] = private_key
+    base_env_vars["ANS_VAR_kafka_zookeeper"] = ",".join(kafka_zookeeper_ips)
+    base_env_vars["ANS_VAR_kafka_broker"] = ",".join(kafka_broker_ips)
+    base_env_vars["ANS_VAR_kafka_schema_registry"] = ",".join(kafka_schema_registry_ips)
+    base_env_vars["ANS_VAR_kafka_connect"] = ",".join(kafka_connect_ips)
+    base_env_vars["ANS_VAR_kafka_rest"] = ",".join(kafka_rest_ips)
+    base_env_vars["ANS_VAR_kafka_ksql"] = ",".join(kafka_ksql_ips)
+    base_env_vars["ANS_VAR_kafka_control_center"] = ",".join(kafka_control_center_ips)
 
-    kafka_zookeeper_ips = _get_private_ips_frm_hosts(stack.zookeeper_hosts,stack)
-    kafka_broker_ips = _get_private_ips_frm_hosts(stack.broker_hosts,stack)
-    kafka_schema_registry_ips = _get_private_ips_frm_hosts(stack.schema_registry_hosts,stack)
-    kafka_connect_ips = _get_private_ips_frm_hosts(stack.connect_hosts,stack)
-    kafka_rest_ips = _get_private_ips_frm_hosts(stack.rest_hosts,stack)
-    kafka_ksql_ips = _get_private_ips_frm_hosts(stack.ksql_hosts,stack)
-    kafka_control_center_ips = _get_private_ips_frm_hosts(stack.control_center_hosts,stack)
-
-    base_env_vars["ANS_VAR_kafka_zookeeper"] = kafka_zookeeper_ips
-    base_env_vars["ANS_VAR_kafka_broker"] = kafka_broker_ips
-    base_env_vars["ANS_VAR_kafka_schema_registry"] = kafka_schema_registry_ips
-    base_env_vars["ANS_VAR_kafka_connect"] = kafka_connect_ips
-    base_env_vars["ANS_VAR_kafka_rest"] = kafka_rest_ips
-    base_env_vars["ANS_VAR_kafka_ksql"] = kafka_ksql_ips
-    base_env_vars["ANS_VAR_kafka_control_center"] = kafka_control_center_ips
-
-    ###############################################################
     # deploy Ansible files
-    ###############################################################
-
     human_description = "Setting up Ansible"
-
     inputargs = {"display":True}
     inputargs["human_description"] = human_description
     inputargs["env_vars"] = json.dumps(base_env_vars.copy())
@@ -123,24 +150,6 @@ def run(stackargs):
     inputargs["automation_phase"] = "infrastructure"
     inputargs["hostname"] = stack.bastion_hostname
     inputargs["groups"] = stack.ubuntu_vendor_setup
-
-    stack.add_groups_to_host(**inputargs)
-
-    # install python hosts
-    env_vars = {"METHOD":"create"}
-    env_vars["STATEFUL_ID"] = stack.random_id(size=10)
-    env_vars["ANS_VAR_private_key"] = private_key
-    env_vars["ANS_VAR_exec_ymls"] = "entry_point/10-install-python.yml"
-    env_vars["ANSIBLE_DIR"] = "/var/tmp/ansible"
-    #env_vars["ANS_VAR_host_ips"] = ",".join(private_ips)
-
-    inputargs = {"display":True}
-    inputargs["human_description"] = 'Install Python for Ansible'
-    inputargs["env_vars"] = json.dumps(env_vars)
-    inputargs["stateful_id"] = env_vars["STATEFUL_ID"]
-    inputargs["automation_phase"] = "infrastructure"
-    inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.install_python
 
     stack.add_groups_to_host(**inputargs)
 
