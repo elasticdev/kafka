@@ -114,7 +114,7 @@ def run(stackargs):
     inputargs = {"display":True}
     inputargs["human_description"] = 'Install Python for Ansible'
     inputargs["env_vars"] = json.dumps(env_vars)
-    inputargs["stateful_id"] = stack.random_id(size=10)
+    inputargs["stateful_id"] = env_vars["STATEFUL_ID"]
     inputargs["automation_phase"] = "infrastructure"
     inputargs["hostname"] = stack.bastion_hostname
     inputargs["groups"] = stack.install_python
