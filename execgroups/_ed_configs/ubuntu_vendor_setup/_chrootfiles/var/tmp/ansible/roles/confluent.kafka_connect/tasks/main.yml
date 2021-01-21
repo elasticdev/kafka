@@ -9,6 +9,7 @@
 - name: Install the Kafka Connect Packages
   apt:
     name: "{{item}}={{confluent.package_version}}"
+    force: True
     update_cache: yes
   loop: "{{kafka_connect_packages}}"
   when: ansible_os_family == "Debian"
