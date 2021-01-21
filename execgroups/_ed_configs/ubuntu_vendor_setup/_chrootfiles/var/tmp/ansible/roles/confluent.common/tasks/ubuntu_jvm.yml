@@ -4,4 +4,5 @@
 - name: Install Java
   apt:
     name: "{{ubuntu_java_package_name}}"
+    force: True
     update_cache: yes

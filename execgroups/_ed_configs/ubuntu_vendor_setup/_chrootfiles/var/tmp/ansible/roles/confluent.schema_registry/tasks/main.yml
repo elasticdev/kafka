@@ -9,6 +9,7 @@
 - name: Install the Schema Registry Packages
   apt:
     name: "{{item}}={{confluent.package_version}}"
+    force: True
     update_cache: yes
   loop: "{{schema_registry_packages}}"
   when: ansible_os_family == "Debian"

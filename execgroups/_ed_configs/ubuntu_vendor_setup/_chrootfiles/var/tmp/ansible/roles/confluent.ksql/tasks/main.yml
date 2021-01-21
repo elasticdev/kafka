@@ -9,6 +9,7 @@
 - name: Install the KSQL Packages
   apt:
     name: "{{item}}={{confluent.package_version}}"
+    force: True
     update_cache: yes
   loop: "{{ksql_packages}}"
   when: ansible_os_family == "Debian"
