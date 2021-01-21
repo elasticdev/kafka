@@ -79,8 +79,8 @@ class Main(ResourceCmdHelper):
         self._add_ips_to_hosts("kafka_zookeeper","zookeeper")
         self._add_ips_to_hosts("kafka_broker","kafka_broker")
         self._add_ips_to_hosts("kafka_schema_registry","schema_registry")
-        self._add_ips_to_hosts("kafka_connect","schema_connect")
-        self._add_ips_to_hosts("kafka_rest","schema_rest")
+        self._add_ips_to_hosts("kafka_connect","kafka_connect")
+        self._add_ips_to_hosts("kafka_rest","kafka_rest")
         self._add_ips_to_hosts("kafka_ksql","ksql")
         self._add_ips_to_hosts("kafka_control_center","control_center")
 

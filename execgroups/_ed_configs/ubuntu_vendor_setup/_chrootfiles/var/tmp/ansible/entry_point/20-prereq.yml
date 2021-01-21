@@ -6,8 +6,5 @@
   - import_role:
       name: ../roles/confluent.common
   - import_role:
-      name: ../roles/confluent.kerberos
-    when: sasl_protocol == "kerberos" and kerberos_configure|bool
-  - import_role:
       name: ../roles/confluent.ssl
     when: ssl_enabled|bool
