@@ -178,3 +178,4 @@ def _vm_create(server_type,num,stack):
         stack.ec2_ubuntu.insert(display=True,**inputargs)
 
     return hosts
+
