@@ -5,6 +5,7 @@
 **Infrastructure**
 
   - expects ssh_keyname to be uploaded to Ec2
+  - expects vpc and security groups to be already configured and loaded in ED
 
 **Required**
 
