@@ -6,7 +6,7 @@ def _vm_create(server_type,num,stack):
     default_values["security_groups"] = stack.security_groups
     default_values["vpc_name"] = stack.vpc_name
     default_values["subnet"] = stack.subnet
-    default_values["size"] = stack.size
+    default_values["size"] = stack.instance_type
     default_values["disksize"] = stack.disksize
     default_values["register_to_ed"] = None
 
@@ -45,6 +45,7 @@ def run(stackargs):
     stack.parse.add_required(key="num_of_rest",default=1)
     stack.parse.add_required(key="num_of_ksql",default=1)
     stack.parse.add_required(key="num_of_control_center",default=1)
+    stack.parse.add_required(key="image",default="ami-06fb5332e8e3e577a")
 
     stack.parse.add_optional(key="vm_username",default="null")
 
@@ -52,17 +53,13 @@ def run(stackargs):
     stack.parse.add_optional(key="bastion_security_groups",default="bastion")
     stack.parse.add_optional(key="bastion_subnet",default="private")
     stack.parse.add_optional(key="bastion_image",default="ami-06fb5332e8e3e577a")
+    stack.parse.add_optional(key="bastion_config_destroy",default="null")  # destroy bastion config
 
-    # destroy bastion config
-    stack.parse.add_optional(key="bastion_config_destroy",default="null")
-
-    stack.parse.add_required(key="image",default="ami-06fb5332e8e3e577a")
-    stack.parse.add_required(key="aws_default_region",default="us-east-1")
-
+    stack.parse.add_optional(key="aws_default_region",default="us-east-1")
     stack.parse.add_optional(key="security_groups",default="null")
     stack.parse.add_optional(key="vpc_name",default="null")
     stack.parse.add_optional(key="subnet",default="null")
-    stack.parse.add_optional(key="size",default="t3.micro")
+    stack.parse.add_optional(key="instance_type",default="t3.micro")
     stack.parse.add_optional(key="disksize",default="20")
     stack.parse.add_optional(key="ip_key",default="private_ip")
 
@@ -87,7 +84,7 @@ def run(stackargs):
     default_values = {"vpc_name":stack.vpc_name}
     default_values["keyname"] = stack.ssh_keyname
     default_values["aws_default_region"] = stack.aws_default_region
-    default_values["size"] = "t3.micro" # we just ned a small machine for configuration
+    default_values["size"] = stack.instance_type # we just ned a small machine for configuration
     default_values["disksize"] = 50 # we just set the disksize relatively large
 
     overide_values = {"hostname":stack.bastion_hostname}

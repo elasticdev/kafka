@@ -1,4 +1,4 @@
-desc: The stack that creates a Kafka using Virtual Machines
+desc: This stack creates a Kafka cluster using VMs
 release: 0.0.1
 categories: 
    - message_queue
