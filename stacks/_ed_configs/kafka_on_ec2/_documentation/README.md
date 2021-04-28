@@ -39,15 +39,12 @@
 | tags | the tags for the Kafka cluster as ED resources | string   | None       |
 | labels | the labels for the Kafka cluster as ED resources | string   | None       |
 
-**Sample entry:**
+**Sample entry**
 
 ```
 infrastructure:
    kafka:
        stack_name: elasticdev:::kafka_on_ec2
-       dependencies:
-          - infrastructure::vpc
-          - infrastructure::ssh_upload
        arguments:
           image: ami-03aad423811bbee56
           bastion_image: ami-03aad423811bbee56
@@ -66,9 +63,61 @@ infrastructure:
              orchestration: true
 ```
 
+**Sample launch elasticdev/elasticdev.yml:**
 
-
-
-
-
-
+```
+global_arguments:
+   aws_default_region: ap-northeast-1
+   vpc_name: mongodb-cluster-dev-vpc
+   mongodb_cluster: mongodb-cluster-dev
+infrastructure:
+   ssh_upload:
+       stack_name: elasticdev:::ec2_ssh_upload
+       arguments:
+          name: mongodb-cluster-ssh-dev
+          clobber: True
+       credentials:
+           - reference: aws_2
+             orchestration: true
+   vpc:
+       stack_name: elasticdev:::aws_vpc_and_security_group
+       arguments:
+          main_network_block: 10.43.0.0/16
+          tier_level: "3"
+          enable_nat_gateway: true
+          single_nat_gateway: true
+          enable_dns_hostnames: true
+          reuse_nat_ips: true
+          one_nat_gateway_per_az: false
+          use_docker: True
+          labels: "db_type:mongo"
+          tags: "mongodb,database"
+       credentials:
+           - reference: aws_2
+             orchestration: true
+   replica:
+       stack_name: elasticdev:::mongodb_replica_on_ec2
+       dependencies:
+          - infrastructure::vpc
+          - infrastructure::ssh_upload
+       arguments:
+          bastion_config_destroy: true
+          bastion_security_groups: bastion
+          bastion_subnet: public
+          hostname_random: true
+          size: t3.micro
+          ssh_keyname: mongodb-cluster-ssh-dev
+          num_of_replicas: 3
+          security_groups: database
+          subnet: private
+          disksize: 25
+          ip_key: public_ip
+          volume_size: 25
+          volume_mount: /var/lib/mongodb
+          volume_fstype: xfs
+          mongodb_username: admin123
+          mongodb_password: admin123
+       credentials:
+           - reference: aws_2
+             orchestration: true
+```
