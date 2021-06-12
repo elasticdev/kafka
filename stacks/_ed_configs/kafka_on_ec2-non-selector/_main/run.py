@@ -3,12 +3,12 @@ def _vm_create(server_type,num,stack):
     default_values = {"keyname":stack.ssh_keyname}
     default_values["image"] = stack.image
     default_values["aws_default_region"] = stack.aws_default_region
+    default_values["security_groups"] = stack.security_groups
+    default_values["vpc_name"] = stack.vpc_name
+    default_values["subnet"] = stack.subnet
     default_values["size"] = stack.instance_type
     default_values["disksize"] = stack.disksize
     default_values["register_to_ed"] = None
-    default_values["vpc_id"] = stack.vpc_id
-    default_values["subnet_ids"] = stack.subnet_ids
-    default_values["sg_id"] = stack.sg_id
 
     hosts = []
 
@@ -50,19 +50,19 @@ def run(stackargs):
     stack.parse.add_optional(key="vm_username",default="null")
 
     # bastion configs
-    stack.parse.add_optional(key="bastion_sg_id",default="null")
-    stack.parse.add_optional(key="bastion_subnet_ids",default="null")
+    # guysguys
+    stack.parse.add_optional(key="bastion_security_groups",default="bastion")
+    stack.parse.add_optional(key="bastion_subnet",default="private")
     stack.parse.add_optional(key="bastion_image",default="ami-06fb5332e8e3e577a")
-    # destroy bastion config
-    stack.parse.add_optional(key="bastion_config_destroy",default="null")
+    stack.parse.add_optional(key="bastion_config_destroy",default="null")  # destroy bastion config
 
     stack.parse.add_optional(key="aws_default_region",default="us-east-1")
-    stack.parse.add_optional(key="sg_id",default="null")
-    stack.parse.add_optional(key="vpc_id",default="null")
-    stack.parse.add_optional(key="subnet_ids",default="null")
-
+    stack.parse.add_optional(key="security_groups",default="null")
+    stack.parse.add_optional(key="vpc_name",default="null")
+    stack.parse.add_optional(key="subnet",default="null")
     stack.parse.add_optional(key="instance_type",default="t3.micro")
     stack.parse.add_optional(key="disksize",default="20")
+    stack.parse.add_optional(key="ip_key",default="private_ip")
 
     stack.parse.add_optional(key="tags",default="null")
     stack.parse.add_optional(key="labels",default="null")
@@ -81,17 +81,17 @@ def run(stackargs):
     stack.set_variable("hostname_base","{}-{}".format(stack.kafka_cluster,stack.random_id(size=3).lower()))
     stack.set_variable("bastion_hostname","{}-config".format(stack.hostname_base))
 
-    # Set up bastion configuration host
-    default_values = {"vpc_id":stack.vpc_id}
+    # Set up bastion
+    default_values = {"vpc_name":stack.vpc_name}
     default_values["keyname"] = stack.ssh_keyname
     default_values["aws_default_region"] = stack.aws_default_region
-    default_values["size"] = stack.instance_type
-    default_values["disksize"] = stack.disksize
+    default_values["size"] = stack.instance_type # we just ned a small machine for configuration
+    default_values["disksize"] = 50 # we just set the disksize relatively large
 
     overide_values = {"hostname":stack.bastion_hostname}
     overide_values["register_to_ed"] = True
-    overide_values["subnet_ids"] = stack.bastion_subnet_ids
-    overide_values["sg_id"] = stack.bastion_sg_id
+    overide_values["subnet"] = stack.bastion_subnet
+    overide_values["security_groups"] = stack.bastion_security_groups
     overide_values["image"] = stack.bastion_image
 
     inputargs = {"default_values":default_values,
@@ -101,6 +101,14 @@ def run(stackargs):
     inputargs["automation_phase"] = "infrastructure"
     inputargs["human_description"] = human_description
     stack.ec2_ubuntu.insert(display=True,**inputargs)
+
+    stack.parse.add_required(key="num_of_zookeeper",default=1)
+    stack.parse.add_required(key="num_of_broker",default=1)
+    stack.parse.add_required(key="num_of_schema_registry",default=1)
+    stack.parse.add_required(key="num_of_connect",default=1)
+    stack.parse.add_required(key="num_of_rest",default=1)
+    stack.parse.add_required(key="num_of_ksql",default=1)
+    stack.parse.add_required(key="num_of_control_center",default=1)
 
     zookeeper_hosts = _vm_create("zookeeper",stack.num_of_zookeeper,stack)
     broker_hosts = _vm_create("broker",stack.num_of_broker,stack)
