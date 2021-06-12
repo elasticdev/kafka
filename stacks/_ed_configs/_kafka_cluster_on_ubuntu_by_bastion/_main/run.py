@@ -90,16 +90,22 @@ def run(stackargs):
     host_ips = []
     kafka_zookeeper_ips = _get_private_ips_frm_hosts(stack.zookeeper_hosts,stack)
     host_ips.extend(kafka_zookeeper_ips)
+
     kafka_broker_ips = _get_private_ips_frm_hosts(stack.broker_hosts,stack)
     host_ips.extend(kafka_broker_ips)
+
     kafka_schema_registry_ips = _get_private_ips_frm_hosts(stack.schema_registry_hosts,stack)
     host_ips.extend(kafka_schema_registry_ips)
+
     kafka_connect_ips = _get_private_ips_frm_hosts(stack.connect_hosts,stack)
     host_ips.extend(kafka_connect_ips)
+
     kafka_rest_ips = _get_private_ips_frm_hosts(stack.rest_hosts,stack)
     host_ips.extend(kafka_rest_ips)
+
     kafka_ksql_ips = _get_private_ips_frm_hosts(stack.ksql_hosts,stack)
     host_ips.extend(kafka_ksql_ips)
+
     kafka_control_center_ips = _get_private_ips_frm_hosts(stack.control_center_hosts,stack)
     host_ips.extend(kafka_control_center_ips)
 
