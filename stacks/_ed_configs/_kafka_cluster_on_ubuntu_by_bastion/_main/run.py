@@ -1,13 +1,13 @@
-def _get_instance_info(stack,hostname):
-
-    _lookup = {"must_exists":True}
-    _lookup["must_be_one"] = True
-    _lookup["resource_type"] = "server"
-    _lookup["hostname"] = hostname
-    _lookup["region"] = stack.aws_default_region
-    _info = list(stack.get_resource(**_lookup))[0]
-
-    return _info["instance_id"]
+#def _get_instance_info(stack,hostname):
+#
+#    _lookup = {"must_exists":True}
+#    _lookup["must_be_one"] = True
+#    _lookup["resource_type"] = "server"
+#    _lookup["hostname"] = hostname
+#    _lookup["region"] = stack.aws_default_region
+#    _info = list(stack.get_resource(**_lookup))[0]
+#
+#    return _info["instance_id"]
 
 def _get_ssh_key(stack):
 
@@ -159,130 +159,11 @@ def run(stackargs):
 
     stack.add_groups_to_host(**inputargs)
 
-    # install prereq kafka
-    human_description = "Prereq for Kafka"
+    # install kafka
+    human_description = "Install Kafka"
 
     env_vars = base_env_vars.copy()
-    env_vars["ANS_VAR_exec_ymls"] = "entry_point/20-prereq.yml"
-    docker_env_fields_keys = env_vars.keys()
-    env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
-
-    inputargs = {"display":True}
-    inputargs["human_description"] = human_description
-    inputargs["env_vars"] = json.dumps(env_vars)
-    inputargs["stateful_id"] = stateful_id
-    inputargs["automation_phase"] = "infrastructure"
-    inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
-
-    stack.add_groups_to_host(**inputargs)
-
-    # install zookeeper kafka
-    human_description = "Install zookeeper"
-    env_vars = base_env_vars.copy()
-    env_vars["ANS_VAR_exec_ymls"] = "entry_point/30-zookeeper.yml"
-    docker_env_fields_keys = env_vars.keys()
-    env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
-
-    inputargs = {"display":True}
-    inputargs["human_description"] = human_description
-    inputargs["env_vars"] = json.dumps(env_vars)
-    inputargs["stateful_id"] = stateful_id
-    inputargs["automation_phase"] = "infrastructure"
-    inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
-
-    stack.add_groups_to_host(**inputargs)
-
-    # install broker kafka
-    human_description = "Install broker"
-    env_vars = base_env_vars.copy()
-    env_vars["ANS_VAR_exec_ymls"] = "entry_point/40-broker.yml"
-    docker_env_fields_keys = env_vars.keys()
-    env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
-
-    inputargs = {"display":True}
-    inputargs["human_description"] = human_description
-    inputargs["env_vars"] = json.dumps(env_vars)
-    inputargs["stateful_id"] = stateful_id
-    inputargs["automation_phase"] = "infrastructure"
-    inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
-
-    stack.add_groups_to_host(**inputargs)
-
-    # install schema kafka
-    human_description = "Install schema"
-    env_vars = base_env_vars.copy()
-    env_vars["ANS_VAR_exec_ymls"] = "entry_point/50-schema.yml"
-    docker_env_fields_keys = env_vars.keys()
-    env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
-
-    inputargs = {"display":True}
-    inputargs["human_description"] = human_description
-    inputargs["env_vars"] = json.dumps(env_vars)
-    inputargs["stateful_id"] = stateful_id
-    inputargs["automation_phase"] = "infrastructure"
-    inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
-
-    stack.add_groups_to_host(**inputargs)
-
-    # install connect kafka
-    human_description = "Install connnect"
-    env_vars = base_env_vars.copy()
-    env_vars["ANS_VAR_exec_ymls"] = "entry_point/60-connect.yml"
-    docker_env_fields_keys = env_vars.keys()
-    env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
-
-    inputargs = {"display":True}
-    inputargs["human_description"] = human_description
-    inputargs["env_vars"] = json.dumps(env_vars)
-    inputargs["stateful_id"] = stateful_id
-    inputargs["automation_phase"] = "infrastructure"
-    inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
-
-    stack.add_groups_to_host(**inputargs)
-
-    # install ksql kafka
-    human_description = "Install ksql"
-    env_vars = base_env_vars.copy()
-    env_vars["ANS_VAR_exec_ymls"] = "entry_point/70-ksql.yml"
-    docker_env_fields_keys = env_vars.keys()
-    env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
-
-    inputargs = {"display":True}
-    inputargs["human_description"] = human_description
-    inputargs["env_vars"] = json.dumps(env_vars)
-    inputargs["stateful_id"] = stateful_id
-    inputargs["automation_phase"] = "infrastructure"
-    inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
-
-    stack.add_groups_to_host(**inputargs)
-
-    # install rest kafka
-    human_description = "Install rest"
-    env_vars = base_env_vars.copy()
-    env_vars["ANS_VAR_exec_ymls"] = "entry_point/80-rest.yml"
-    docker_env_fields_keys = env_vars.keys()
-    env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
-
-    inputargs = {"display":True}
-    inputargs["human_description"] = human_description
-    inputargs["env_vars"] = json.dumps(env_vars)
-    inputargs["stateful_id"] = stateful_id
-    inputargs["automation_phase"] = "infrastructure"
-    inputargs["hostname"] = stack.bastion_hostname
-    inputargs["groups"] = stack.ubuntu_vendor_init_cluster
-
-    stack.add_groups_to_host(**inputargs)
-
-    # install control kafka
-    human_description = "Install control"
-    env_vars = base_env_vars.copy()
-    env_vars["ANS_VAR_exec_ymls"] = "entry_point/90-control.yml"
+    env_vars["ANS_VAR_exec_ymls"] = "entry_point/all.yml"
     docker_env_fields_keys = env_vars.keys()
     env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
 
@@ -310,3 +191,144 @@ def run(stackargs):
     stack.publish(_publish_vars)
 
     return stack.get_results()
+
+    ##############################################################
+    ## Separate steps, but slow
+    ##############################################################
+    ## install prereq kafka
+    #human_description = "Prereq for Kafka"
+
+    #env_vars = base_env_vars.copy()
+    #env_vars["ANS_VAR_exec_ymls"] = "entry_point/20-prereq.yml"
+    #docker_env_fields_keys = env_vars.keys()
+    #env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
+
+    #inputargs = {"display":True}
+    #inputargs["human_description"] = human_description
+    #inputargs["env_vars"] = json.dumps(env_vars)
+    #inputargs["stateful_id"] = stateful_id
+    #inputargs["automation_phase"] = "infrastructure"
+    #inputargs["hostname"] = stack.bastion_hostname
+    #inputargs["groups"] = stack.ubuntu_vendor_init_cluster
+
+    #stack.add_groups_to_host(**inputargs)
+
+    ## install zookeeper kafka
+    #human_description = "Install zookeeper"
+    #env_vars = base_env_vars.copy()
+    #env_vars["ANS_VAR_exec_ymls"] = "entry_point/30-zookeeper.yml"
+    #docker_env_fields_keys = env_vars.keys()
+    #env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
+
+    #inputargs = {"display":True}
+    #inputargs["human_description"] = human_description
+    #inputargs["env_vars"] = json.dumps(env_vars)
+    #inputargs["stateful_id"] = stateful_id
+    #inputargs["automation_phase"] = "infrastructure"
+    #inputargs["hostname"] = stack.bastion_hostname
+    #inputargs["groups"] = stack.ubuntu_vendor_init_cluster
+
+    #stack.add_groups_to_host(**inputargs)
+
+    ## install broker kafka
+    #human_description = "Install broker"
+    #env_vars = base_env_vars.copy()
+    #env_vars["ANS_VAR_exec_ymls"] = "entry_point/40-broker.yml"
+    #docker_env_fields_keys = env_vars.keys()
+    #env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
+
+    #inputargs = {"display":True}
+    #inputargs["human_description"] = human_description
+    #inputargs["env_vars"] = json.dumps(env_vars)
+    #inputargs["stateful_id"] = stateful_id
+    #inputargs["automation_phase"] = "infrastructure"
+    #inputargs["hostname"] = stack.bastion_hostname
+    #inputargs["groups"] = stack.ubuntu_vendor_init_cluster
+
+    #stack.add_groups_to_host(**inputargs)
+
+    ## install schema kafka
+    #human_description = "Install schema"
+    #env_vars = base_env_vars.copy()
+    #env_vars["ANS_VAR_exec_ymls"] = "entry_point/50-schema.yml"
+    #docker_env_fields_keys = env_vars.keys()
+    #env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
+
+    #inputargs = {"display":True}
+    #inputargs["human_description"] = human_description
+    #inputargs["env_vars"] = json.dumps(env_vars)
+    #inputargs["stateful_id"] = stateful_id
+    #inputargs["automation_phase"] = "infrastructure"
+    #inputargs["hostname"] = stack.bastion_hostname
+    #inputargs["groups"] = stack.ubuntu_vendor_init_cluster
+
+    #stack.add_groups_to_host(**inputargs)
+
+    ## install connect kafka
+    #human_description = "Install connnect"
+    #env_vars = base_env_vars.copy()
+    #env_vars["ANS_VAR_exec_ymls"] = "entry_point/60-connect.yml"
+    #docker_env_fields_keys = env_vars.keys()
+    #env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
+
+    #inputargs = {"display":True}
+    #inputargs["human_description"] = human_description
+    #inputargs["env_vars"] = json.dumps(env_vars)
+    #inputargs["stateful_id"] = stateful_id
+    #inputargs["automation_phase"] = "infrastructure"
+    #inputargs["hostname"] = stack.bastion_hostname
+    #inputargs["groups"] = stack.ubuntu_vendor_init_cluster
+
+    #stack.add_groups_to_host(**inputargs)
+
+    ## install ksql kafka
+    #human_description = "Install ksql"
+    #env_vars = base_env_vars.copy()
+    #env_vars["ANS_VAR_exec_ymls"] = "entry_point/70-ksql.yml"
+    #docker_env_fields_keys = env_vars.keys()
+    #env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
+
+    #inputargs = {"display":True}
+    #inputargs["human_description"] = human_description
+    #inputargs["env_vars"] = json.dumps(env_vars)
+    #inputargs["stateful_id"] = stateful_id
+    #inputargs["automation_phase"] = "infrastructure"
+    #inputargs["hostname"] = stack.bastion_hostname
+    #inputargs["groups"] = stack.ubuntu_vendor_init_cluster
+
+    #stack.add_groups_to_host(**inputargs)
+
+    ## install rest kafka
+    #human_description = "Install rest"
+    #env_vars = base_env_vars.copy()
+    #env_vars["ANS_VAR_exec_ymls"] = "entry_point/80-rest.yml"
+    #docker_env_fields_keys = env_vars.keys()
+    #env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
+
+    #inputargs = {"display":True}
+    #inputargs["human_description"] = human_description
+    #inputargs["env_vars"] = json.dumps(env_vars)
+    #inputargs["stateful_id"] = stateful_id
+    #inputargs["automation_phase"] = "infrastructure"
+    #inputargs["hostname"] = stack.bastion_hostname
+    #inputargs["groups"] = stack.ubuntu_vendor_init_cluster
+
+    #stack.add_groups_to_host(**inputargs)
+
+    ## install control kafka
+    #human_description = "Install control"
+    #env_vars = base_env_vars.copy()
+    #env_vars["ANS_VAR_exec_ymls"] = "entry_point/90-control.yml"
+    #docker_env_fields_keys = env_vars.keys()
+    #env_vars["DOCKER_ENV_FIELDS"] = ",".join(docker_env_fields_keys)
+
+    #inputargs = {"display":True}
+    #inputargs["human_description"] = human_description
+    #inputargs["env_vars"] = json.dumps(env_vars)
+    #inputargs["stateful_id"] = stateful_id
+    #inputargs["automation_phase"] = "infrastructure"
+    #inputargs["hostname"] = stack.bastion_hostname
+    #inputargs["groups"] = stack.ubuntu_vendor_init_cluster
+
+    #stack.add_groups_to_host(**inputargs)
+
